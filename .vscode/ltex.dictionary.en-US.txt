@@ -41,6 +41,7 @@ bootx
 bpf
 brk
 bufs
+buildah
 buildutils
 cachestat
 capget
@@ -94,6 +95,7 @@ DIRENV
 DLAB
 dngettext
 DOFORK
+dotenv
 DSYNC
 dtes
 dup
@@ -335,6 +337,7 @@ gfxinfo
 gfxxform
 Ghostty
 ginfo
+glab
 GLES
 glibc
 glsl
@@ -658,6 +661,7 @@ restart_syscall
 retarget
 revents
 RFLAGS
+rgui
 rlim
 rlimit
 rmdir

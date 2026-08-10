@@ -1,0 +1,193 @@
+workflow:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH == "main"'
+
+stages:
+  - image
+  - build
+  - release
+
+variables:
+  GIT_SUBMODULE_STRATEGY: recursive
+  CC: "zig cc -target x86_64-windows-gnu"
+  CXX: "zig c++ -target x86_64-windows-gnu"
+  PACKAGE_REGISTRY_URL: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${CI_PROJECT_NAME}"
+  CI_IMAGE: "${CI_REGISTRY_IMAGE}/rocky9-ci:latest"
+  ZIG_VERSION: "0.16.0"
+  BUILD_MODE: "ReleaseSafe"
+  SPECIAL_HOST: "gitlab.local"
+  EXE_NAME: "rgui"
+
+# default image for docker-executor jobs. Shell executor (FSL) ignores it.
+default:
+  image:
+    name: "${CI_IMAGE}"
+    pull_policy: always
+
+# only for docker runs
+build-ci-image:
+  stage: image
+  image: quay.io/buildah/stable
+  variables:
+    STORAGE_DRIVER: vfs
+    BUILDAH_ISOLATION: chroot
+  rules:
+    - if: '$CI_SERVER_HOST != "${SPECIAL_HOST}"'
+      changes:
+        - ci/Dockerfile.rocky9-ci
+  before_script:
+    - mkdir -p /etc/containers
+    - |
+      cat >> /etc/containers/registries.conf <<EOF
+      [[registry]]
+        location = "${CI_REGISTRY}"
+        insecure = true
+      EOF
+  script:
+    - buildah login -u "gitlab-ci-token" -p "${CI_JOB_TOKEN}" "${CI_REGISTRY}"
+    - buildah build --format=docker -t "${CI_IMAGE}" -f ci/Dockerfile.rocky9-ci .
+    - buildah push "${CI_IMAGE}"
+
+build:
+  stage: build
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "main"'
+    - if: '$CI_COMMIT_BRANCH == "main"'
+  before_script:
+    # zig's cache writes use renameat2() with flags Lustre (the checkout's
+    # filesystem, e.g. FSL's /nobackup2) rejects with EINVAL - redirect both
+    # cache dirs to /local (local disk) instead. Per-job random subdir avoids
+    # collisions between concurrent shell-runner jobs sharing /local; trap
+    # cleans it up on both success and failure so it never accumulates.
+    - |
+      if [ -d /nobackup2 ] && [ -d /local ]; then
+        IS_FSL=1
+        TMP_DIR=$(mktemp -d -p /local "zig-ci-${CI_JOB_ID}-XXXXXX")
+        ZIG_EXTRA_ARGS="--cache-dir $TMP_DIR/local-cache --global-cache-dir $TMP_DIR/global-cache"
+      fi
+  cache:
+    # Keyed on ZIG_VERSION so bumping the version (or pointing it at a
+    # master/nightly build identifier) automatically fetches a fresh
+    # toolchain into a new cache slot instead of reusing a stale one.
+    key: "zig-${ZIG_VERSION}"
+    paths:
+      - .toolchain/
+  script:
+    - |
+      ZIG_DIR="zig-x86_64-linux-${ZIG_VERSION}"
+      if [ ! -x ".toolchain/${ZIG_DIR}/zig" ]; then
+        echo "Zig ${ZIG_VERSION} not found in cache, downloading..."
+        mkdir -p .toolchain
+        curl -fsSL -o zig.tar.xz "https://ziglang.org/download/${ZIG_VERSION}/zig-x86_64-linux-${ZIG_VERSION}.tar.xz"
+        tar -xf zig.tar.xz -C .toolchain
+        rm zig.tar.xz
+      else
+        echo "Zig ${ZIG_VERSION} found in cache, skipping download"
+      fi
+    - export PATH="$PATH:$PWD/.toolchain/${ZIG_DIR}"
+    - zig build -Doptimize=${BUILD_MODE} -Dtarget=x86_64-windows-gnu $ZIG_EXTRA_ARGS
+    - mkdir dist
+    - mv zig-out/bin/${EXE_NAME}.exe "dist/${EXE_NAME}-${CI_COMMIT_SHORT_SHA}.exe"
+  after_script:
+    - '[ -n $IS_FSL ] && rm -rf "$TMP_DIR"'
+  artifacts:
+    name: "${EXE_NAME}-${CI_COMMIT_SHORT_SHA}"
+    paths:
+      - dist/
+    expire_in: 1 week
+
+# fails if the version tag already exists - forces a version bump before merge.
+release-check:
+  stage: release
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+  script:
+    - VERSION=$(grep -oP '\.version\s*=\s*"\K[^"]+' build.zig.zon)
+    - TAG="v${VERSION}"
+    - echo "VERSION=${VERSION}" >> build.env
+    - echo "TAG=${TAG}" >> build.env
+    - git fetch origin --tags -q
+    - |
+      if git tag -l "$TAG" | grep -qx "$TAG"; then
+        echo "Tag $TAG already exists - bump the version in build.zig.zon before merging to main." >&2
+        exit 1
+      fi
+    - cat build.env
+  artifacts:
+    reports:
+      dotenv: build.env
+
+upload:
+  stage: release
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+  needs:
+    - job: build
+      artifacts: true
+    - job: release-check
+      artifacts: true
+  script:
+    - RELEASE_BINARY="${EXE_NAME}-${TAG}.exe"
+    - mv "dist/${EXE_NAME}-${CI_COMMIT_SHORT_SHA}.exe" "dist/${RELEASE_BINARY}"
+    - echo "Uploading ${RELEASE_BINARY} to GitLab Package Registry..."
+    - |
+      curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" \
+           --upload-file "dist/${RELEASE_BINARY}" \
+           "${PACKAGE_REGISTRY_URL}/${TAG}/${RELEASE_BINARY}"
+  artifacts:
+    paths:
+      - dist/
+
+.release-template:
+  stage: release
+  variables:
+    GITLAB_HOST: "${CI_SERVER_HOST}:${CI_SERVER_PORT}"
+    GLAB_ENABLE_CI_AUTOLOGIN: "true"
+  needs:
+    - job: release-check
+      artifacts: true
+    - job: upload
+      artifacts: true
+  script:
+    - glab config set skip_tls_verify true
+    - glab auth login --job-token $CI_JOB_TOKEN --api-protocol $CI_SERVER_PROTOCOL
+    - |
+      if glab release view "$TAG" >/dev/null 2>&1; then
+        echo "Release $TAG already exists - skipping (created by the other runner pool's job)."
+        exit 0
+      fi
+    - echo "Creating GitLab Release ${TAG}..."
+    - |
+      glab release create "$TAG" \
+        --ref "$CI_COMMIT_SHA" \
+        --name "Release $TAG" \
+        --notes "Automated release for version $TAG" \
+        --assets-links="[{\"name\":\"Windows Executable\",\"url\":\"${PACKAGE_REGISTRY_URL}/${TAG}/${EXE_NAME}-${TAG}.exe\"}]"
+
+release-fsl:
+  extends: .release-template
+  needs:
+    - job: release-check
+      artifacts: true
+    - job: upload
+      artifacts: true
+    # - job: check-image
+    #   artifacts: true
+  rules:
+    - if: '$CI_SERVER_HOST == "${SPECIAL_HOST}" && $CI_COMMIT_BRANCH == "main"'
+  before_script:
+    - module load glab || echo "did not load glab module, assuming it's already available"
+
+release-docker:
+  extends: .release-template
+  image: gitlab/glab
+  needs:
+    - job: release-check
+      artifacts: true
+    - job: upload
+      artifacts: true
+    # - job: check-image
+    #   artifacts: true
+  rules:
+    - if: '$CI_SERVER_HOST != "${SPECIAL_HOST}" && $CI_COMMIT_BRANCH == "main"'
