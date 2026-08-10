@@ -1,0 +1,29 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"claudeCode.allowDangerouslySkipPermissions": true,
+		"files.exclude": {
+			"**/node_modules/**": true,
+			"**/.zig-cache/**": true,
+			"**/zig-pkg/**": true,
+			"**/zig-cache*/**": true,
+		},
+		"files.watcherExclude": {
+			"**/node_modules/**": true,
+			"**/.zig-cache/**": true,
+			"**/zig-pkg/**": true,
+			"**/zig-cache*/**": true,
+		},
+    "files.associations": {
+      "VERSION": "plaintext",
+      ".local-gitignore": "gitignore",
+      ".github/workflows/exempt.txt": "gitignore"
+    },
+    "zig.path": "C:/scratch/git/zig-build/bin/stage4/bin/zig.exe",
+    "zig.zls.path": "C:/scratch/git/zig-build/bin/zls/bin/zls.exe",
+	},
+}

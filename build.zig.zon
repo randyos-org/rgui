@@ -1,0 +1,14 @@
+.{
+    .name = .rgui,
+    .fingerprint = 0xcbcc3ee1bb521ef1, // Changing this has security and trust implications.
+    .version = "0.1.0",
+    .minimum_zig_version = "0.17.0-dev.1444+8d6b8a643",
+
+    // package hash is computed from files in .paths
+    .paths = .{
+        "build.zig",
+        "build.zig.zon",
+        "LICENSE",
+        "src",
+    },
+}
