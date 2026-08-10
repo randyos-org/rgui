@@ -2,7 +2,14 @@
     .name = .rgui,
     .fingerprint = 0xcbcc3ee1bb521ef1, // Changing this has security and trust implications.
     .version = "0.1.0",
-    .minimum_zig_version = "0.17.0-dev.1444+8d6b8a643",
+    // .minimum_zig_version = "0.17.0-dev.1444+8d6b8a643",
+    .minimum_zig_version = "0.16.0",
+    .dependencies = .{
+        .win32 = .{
+            .url = "git+https://github.com/marlersoft/zigwin32#65cb93421729e89c0acc99f90550e8ad0e6ceb87",
+            .hash = "win32-32.0.17-preview-mX5pFV2k5QN3LlWB1QQWEJv6wltK3Eq5Nn-ZDa_2_Na6",
+        },
+    },
 
     // package hash is computed from files in .paths
     .paths = .{

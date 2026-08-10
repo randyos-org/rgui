@@ -43,8 +43,8 @@
     // "lldb.dereferencePointers": true,
     // "zig.debugAdapter": "lldb",
 
-    "zig.path": "C:/scratch/git/zig-build/bin/stage4/bin/zig.exe",
-    "zig.zls.path": "C:/scratch/git/zig-build/bin/zls/bin/zls.exe",
+    // "zig.path": "C:/scratch/git/zig-build/bin/stage4/bin/zig.exe",
+    // "zig.zls.path": "C:/scratch/git/zig-build/bin/zls/bin/zls.exe",
   },
   "tasks": {
 		"version": "2.0.0",

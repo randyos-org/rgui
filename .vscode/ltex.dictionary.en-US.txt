@@ -359,9 +359,13 @@ HUGETLB
 HWCAP
 HWPOISON
 ICACHEBSIZE
+idat
+IEND
 ifndef
 ifreund
 IGNOREPPC
+ihdr
+imgs
 Imgui
 init
 init_module
@@ -370,6 +374,7 @@ inotify_add_watch
 inotify_init
 inotify_init1
 inotify_rm_watch
+ints
 io_cancel
 io_destroy
 io_getevents
