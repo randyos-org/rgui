@@ -15,11 +15,11 @@ pub const ZigCBind = struct {
     clink: ZigCLink,
 };
 
-pub const ZigCModule = struct {
+pub const ZigModule = struct {
     mod: *std.Build.Module,
     name: []const u8,
 
-    pub fn addImportToModule(self: *const ZigCModule, mod: *std.Build.Module) void {
+    pub fn addImportToModule(self: *const ZigModule, mod: *std.Build.Module) void {
         mod.addImport(self.name, self.mod);
     }
 };

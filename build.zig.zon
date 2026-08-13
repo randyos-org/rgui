@@ -9,6 +9,26 @@
             .url = "git+https://github.com/marlersoft/zigwin32#65cb93421729e89c0acc99f90550e8ad0e6ceb87",
             .hash = "win32-32.0.17-preview-mX5pFV2k5QN3LlWB1QQWEJv6wltK3Eq5Nn-ZDa_2_Na6",
         },
+        .vulkan_headers = .{
+            .url = "git+https://github.com/KhronosGroup/Vulkan-Headers.git#015e25c3c91b70eb1a754d36fb14c4ba6ad9b0b9",
+            .hash = "N-V-__8AAHAZeALsJNAOsFHuMyyXDuoFVG48EQdnJGNAZ3Th",
+        },
+        .vulkan = .{
+            .url = "git+https://github.com/Snektron/vulkan-zig#b496a6a561ffbbeb530b0f9ed4e059f88c0723a5",
+            .hash = "vulkan-0.0.0-r7Ytx7N9AwD7IZt5_XNHtkJ4G9qY0pCH-cpcOsbL8wzD",
+        },
+        .sdl = .{
+            .url = "git+https://github.com/allyourcodebase/SDL3.git#3248f97fd3631328bcdc71356cbc26093861d87f",
+            .hash = "sdl-1.0.1+3.4.4-i4QD0YqSqQCOOwj21rl1blvhDjBh_EDvOcnzfPbBa6lw",
+        },
+        .zmath = .{
+            .url = "git+https://github.com/zig-gamedev/zmath.git#9e42b04a24c970a297b365f3d3022f92dbf3219d",
+            .hash = "zmath-0.11.0-dev-wjwivTwtAwDOjG2_KGP-HLtHrONfsFfHttalmxFAGVAK",
+        },
+        .mr_ktx2 = .{
+            .url = "git+https://codeberg.org/Games-by-Mason/mr_ktx2.git#b3b736a235a9e8c908986a3b0b469f499c819230",
+            .hash = "mr_ktx2-0.0.0-8RkzwrG8AADbuGZChzj4i8wqNfZOfdwMZMaV8QWlMUbM",
+        },
     },
 
     // package hash is computed from files in .paths

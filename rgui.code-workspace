@@ -35,6 +35,10 @@
     "zig.zls.inlayHintsShowStructLiteralFieldType": false,
     "zig.zls.inlayHintsShowVariableTypeHints": false,
     "zig.zls.warnStyle": true,
+	  "debug.onTaskErrors": "abort",  // will switch to problems pane otherwise
+
+    // for C deps we will compile with Zig that have CMakeLists in their repos
+    "cmake.ignoreCMakeListsMissing": true,
 
     // CodeLLDB settings - never got this to work properly.
     // // "lldb.library": "",
@@ -86,7 +90,12 @@
 					"kind": "build",
 					"isDefault": true
 				},
-				"problemMatcher": []
+				"problemMatcher": [],
+        "presentation": {
+          "reveal": "always",
+          "focus": true,
+          "revealProblems": "never"
+        }
 			}
 		]
 	},

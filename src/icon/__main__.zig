@@ -2,6 +2,12 @@ const std = @import("std");
 
 const master_size: i32 = 1024; // high-res canvas; downsampled to each target size
 
+/// Source artwork, decoded and downsampled into the generated icon sizes.
+/// Registered as an anonymous import in build/icon.zig (it lives in
+/// assets/, outside this module's root, so it can't be a relative
+/// @embedFile).
+const avatar_png = @embedFile("avatar.png");
+
 const Color = struct { r: u8, g: u8, b: u8, a: u8 };
 
 const Image = struct {
@@ -21,13 +27,41 @@ pub fn main(init: std.process.Init) !void {
     const io = init.io;
 
     const args = try init.minimal.args.toSlice(allocator);
-    if (args.len != 3) {
-        std.debug.print("usage: genicon <out.png> <out.ico>\n", .{});
+    if (args.len != 4) {
+        std.debug.print("usage: genicon <out.png> <out.ico> <out.rgba>\n", .{});
         return error.InvalidArgs;
     }
     const png_path = args[1];
     const ico_path = args[2];
+    const raw_path = args[3];
 
+    // const m = try draw(allocator);
+    const m = try decodePNG(allocator, avatar_png);
+
+    // Emit PNG (256) and a multi-size ICO.
+    const icon256 = try downsample(allocator, &m, 256);
+    const png_bytes = try encodePNG(allocator, &icon256);
+    try std.Io.Dir.cwd().writeFile(io, .{ .sub_path = png_path, .data = png_bytes });
+
+    const sizes = [_]i32{ 16, 24, 32, 48, 64, 128, 256 };
+    var imgs: [sizes.len]Image = undefined;
+    for (sizes, 0..) |s, i| imgs[i] = try downsample(allocator, &m, s);
+
+    try writeICO(allocator, io, ico_path, &imgs);
+
+    // Raw RGBA8 pixel dump (32x32, no PNG wrapper) for the runtime SDL
+    // window icon - SDL has no PNG decoder built in, and this project
+    // deliberately has no image library dependency, so the app embeds this
+    // directly instead of trying to decode icon.png at runtime.
+    const raw32 = for (sizes, imgs) |s, im| {
+        if (s == 32) break im;
+    } else unreachable;
+    try writeRawRGBA(allocator, io, raw_path, &raw32);
+}
+
+/// draw renders the master canvas: a rounded background tile with a stack
+/// of colored bars.
+fn draw(allocator: std.mem.Allocator) !Image {
     var m = try Image.init(allocator, master_size, master_size, .{ .r = 0, .g = 0, .b = 0, .a = 0 });
 
     // Background: full-bleed rounded tile, dark slate.
@@ -48,16 +82,16 @@ pub fn main(init: std.process.Init) !void {
         fillRoundRect(&m, b.x, y0, b.x + b.w, y0 + row_h, row_h / 2, b.col);
     }
 
-    // Emit PNG (256) and a multi-size ICO.
-    const icon256 = try downsample(allocator, &m, 256);
-    const png_bytes = try encodePNG(allocator, &icon256);
-    try std.Io.Dir.cwd().writeFile(io, .{ .sub_path = png_path, .data = png_bytes });
+    return m;
+}
 
-    const sizes = [_]i32{ 16, 24, 32, 48, 64, 128, 256 };
-    var imgs: [sizes.len]Image = undefined;
-    for (sizes, 0..) |s, i| imgs[i] = try downsample(allocator, &m, s);
-
-    try writeICO(allocator, io, ico_path, &imgs);
+/// writeRawRGBA dumps an image as tightly-packed r,g,b,a bytes per pixel,
+/// row-major, with no header - matches SDL_PIXELFORMAT_RGBA32 exactly.
+fn writeRawRGBA(allocator: std.mem.Allocator, io: std.Io, path: []const u8, img: *const Image) !void {
+    var out: std.array_list.Managed(u8) = .init(allocator);
+    defer out.deinit();
+    for (img.data) |c| try out.appendSlice(&[_]u8{ c.r, c.g, c.b, c.a });
+    try std.Io.Dir.cwd().writeFile(io, .{ .sub_path = path, .data = out.items });
 }
 
 fn setPixel(img: *Image, x: i32, y: i32, c: Color) void {
@@ -110,11 +144,11 @@ fn blendPixel(dst: *Image, x: i32, y: i32, c: Color) void {
     });
 }
 
-/// downsample area-averages the master canvas down to an n x n image using
-/// premultiplied alpha so transparent edges stay clean.
+/// downsample area-averages a (square) source image down to an n x n image
+/// using premultiplied alpha so transparent edges stay clean.
 fn downsample(allocator: std.mem.Allocator, src: *const Image, n: i32) !Image {
     var out = try Image.init(allocator, n, n, .{ .r = 0, .g = 0, .b = 0, .a = 0 });
-    const scale = @as(f64, @floatFromInt(master_size)) / @as(f64, @floatFromInt(n));
+    const scale = @as(f64, @floatFromInt(src.width)) / @as(f64, @floatFromInt(n));
 
     var dy: i32 = 0;
     while (dy < n) : (dy += 1) {
@@ -231,6 +265,127 @@ fn encodePNG(allocator: std.mem.Allocator, img: *const Image) ![]u8 {
 
     try writeChunk(&out, "IEND", &.{});
     return out.toOwnedSlice();
+}
+
+/// decodePNG is a minimal decoder covering what real-world PNG exporters
+/// actually produce: 8-bit depth, non-interlaced, RGB or RGBA color type,
+/// any per-scanline filter (None/Sub/Up/Average/Paeth), any chunk ordering
+/// with unknown ancillary chunks (pHYs, tEXt, gAMA, iCCP, ...) skipped.
+/// Palette, grayscale, 16-bit, and interlaced PNGs are out of scope.
+fn decodePNG(allocator: std.mem.Allocator, bytes: []const u8) !Image {
+    const sig = [_]u8{ 0x89, 'P', 'N', 'G', '\r', '\n', 0x1A, '\n' };
+    if (bytes.len < sig.len or !std.mem.eql(u8, bytes[0..sig.len], &sig)) {
+        return error.InvalidPngSignature;
+    }
+
+    var width: i32 = 0;
+    var height: i32 = 0;
+    var bpp: usize = 0; // bytes per pixel: 3 (RGB) or 4 (RGBA), at 8-bit depth
+    var idat: std.array_list.Managed(u8) = .init(allocator);
+    defer idat.deinit();
+
+    var pos: usize = sig.len;
+    while (pos + 8 <= bytes.len) {
+        const len: usize = std.mem.readInt(u32, bytes[pos..][0..4], .big);
+        const chunk_type = bytes[pos + 4 ..][0..4];
+        const data_start = pos + 8;
+        if (data_start + len + 4 > bytes.len) return error.InvalidPngChunk;
+        const data = bytes[data_start..][0..len];
+
+        if (std.mem.eql(u8, chunk_type, "IHDR")) {
+            if (len != 13) return error.InvalidPngChunk;
+            width = @intCast(std.mem.readInt(u32, data[0..4], .big));
+            height = @intCast(std.mem.readInt(u32, data[4..8], .big));
+            const bit_depth = data[8];
+            const color_type = data[9];
+            const interlace = data[12];
+            if (bit_depth != 8 or interlace != 0) return error.UnsupportedPngFormat;
+            bpp = switch (color_type) {
+                2 => 3, // RGB
+                6 => 4, // RGBA
+                else => return error.UnsupportedPngFormat,
+            };
+        } else if (std.mem.eql(u8, chunk_type, "IDAT")) {
+            try idat.appendSlice(data);
+        } else if (std.mem.eql(u8, chunk_type, "IEND")) {
+            break;
+        }
+        // else: skip unknown/ancillary chunk
+
+        pos = data_start + len + 4;
+    }
+    if (width == 0 or height == 0 or bpp == 0) return error.MissingIhdr;
+    if (idat.items.len == 0) return error.MissingIdat;
+
+    const w: usize = @intCast(width);
+    const h: usize = @intCast(height);
+    const stride = w * bpp;
+
+    var idat_reader: std.Io.Reader = .fixed(idat.items);
+    var inflate_buf: [std.compress.flate.max_window_len]u8 = undefined;
+    var decompress: std.compress.flate.Decompress = .init(&idat_reader, .zlib, &inflate_buf);
+
+    var raw: std.Io.Writer.Allocating = try .initCapacity(allocator, h * (stride + 1));
+    defer raw.deinit();
+    _ = try decompress.reader.streamRemaining(&raw.writer);
+    const filtered = raw.written();
+    if (filtered.len != h * (stride + 1)) return error.TruncatedPngData;
+
+    var img = try Image.init(allocator, width, height, .{ .r = 0, .g = 0, .b = 0, .a = 0 });
+
+    // Un-filter each scanline (PNG filters are defined relative to the
+    // pixel to the left, the pixel above, and the pixel above-left - all
+    // in the already-unfiltered image, not the raw compressed bytes).
+    var prev_line = try allocator.alloc(u8, stride);
+    @memset(prev_line, 0); // the "row above" row 0 is defined as all zero
+    var cur_line = try allocator.alloc(u8, stride);
+
+    var y: usize = 0;
+    while (y < h) : (y += 1) {
+        const row_start = y * (stride + 1);
+        const filter_type = filtered[row_start];
+        const src_row = filtered[row_start + 1 ..][0..stride];
+
+        var x: usize = 0;
+        while (x < stride) : (x += 1) {
+            const a: u8 = if (x >= bpp) cur_line[x - bpp] else 0;
+            const b: u8 = prev_line[x];
+            const c: u8 = if (x >= bpp) prev_line[x - bpp] else 0;
+            cur_line[x] = switch (filter_type) {
+                0 => src_row[x],
+                1 => src_row[x] +% a,
+                2 => src_row[x] +% b,
+                3 => src_row[x] +% @as(u8, @intCast((@as(u16, a) + @as(u16, b)) / 2)),
+                4 => src_row[x] +% paeth(a, b, c),
+                else => return error.UnsupportedPngFilter,
+            };
+        }
+
+        var px: usize = 0;
+        while (px < w) : (px += 1) {
+            const c = cur_line[px * bpp ..][0..bpp];
+            setPixel(&img, @intCast(px), @intCast(y), .{
+                .r = c[0],
+                .g = c[1],
+                .b = c[2],
+                .a = if (bpp == 4) c[3] else 0xFF,
+            });
+        }
+
+        std.mem.swap([]u8, &prev_line, &cur_line);
+    }
+
+    return img;
+}
+
+fn paeth(a: u8, b: u8, c: u8) u8 {
+    const p = @as(i32, a) + @as(i32, b) - @as(i32, c);
+    const pa = @abs(p - @as(i32, a));
+    const pb = @abs(p - @as(i32, b));
+    const pc = @abs(p - @as(i32, c));
+    if (pa <= pb and pa <= pc) return a;
+    if (pb <= pc) return b;
+    return c;
 }
 
 /// writeICO packs PNG-encoded images (Vista+ supports PNG entries) into one

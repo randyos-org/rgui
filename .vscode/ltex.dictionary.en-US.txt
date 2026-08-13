@@ -339,6 +339,7 @@ Ghostty
 ginfo
 glab
 GLES
+GLFW
 glibc
 glsl
 GLSL
@@ -346,6 +347,7 @@ Glslang
 gobj
 gobject
 gofmt
+graphqf
 gresource
 gterm
 gtty
@@ -403,6 +405,7 @@ KEEPONFORK
 kexec_file_load
 kexec_load
 keyctl
+KHRONOS
 kill
 killpg
 klogo
@@ -448,6 +451,7 @@ lsm_list_modules
 lsm_set_self_attr
 lstat
 ltex
+LUNARG
 lzma
 madt
 MADV
@@ -500,8 +504,10 @@ msgctl
 msgget
 msgrcv
 msgsnd
+Msngr
 MSVC
 msync
+mtllib
 mtlr
 mtrr
 MTRRs
@@ -557,6 +563,7 @@ outb
 outl
 outw
 OVMF
+Paeth
 PAGESZ
 PascalCase
 PascalCased
@@ -580,6 +587,7 @@ PHENT
 phentsize
 phnum
 phoff
+physdev
 pidfd_getfd
 pidfd_open
 pidfd_send_signal
@@ -631,6 +639,7 @@ pxls
 pyproject
 qcow
 qemu
+qinfo
 query_module
 quotactl
 quotactl_fd
@@ -692,6 +701,7 @@ rtnetlink
 RTPRIO
 RTTIME
 RXRSTOR
+Sascha
 sched_get_priority_max
 sched_get_priority_min
 sched_getaffinity
@@ -788,6 +798,7 @@ SIGVTALRM
 SIGXCPU
 SIGXFSZ
 Simdutf
+slangc
 SLDT
 smap
 SMEP
@@ -892,6 +903,7 @@ vendored
 vfork
 vhangup
 virgl
+vkmod
 vmsplice
 vmxe
 vserver
@@ -939,6 +951,8 @@ yaboot
 ypixel
 zig
 ziggify
+Zigified
 zigimg
+zmath
 zutil
 zxdg

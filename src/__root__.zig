@@ -4,3 +4,10 @@
 pub const main = @import("__main__.zig").main;
 // pub const std_options = impl.std_options;
 // pub const std_options_debug_io = impl.std_options_debug_io;
+
+const build_options = @import("build_options");
+pub const version = build_options.version;
+pub const app_name = "rgui";
+
+pub const shader_module_src align(@alignOf(u32)) = @embedFile("shader_module").*;
+pub const max_frames_in_flight = 2;
