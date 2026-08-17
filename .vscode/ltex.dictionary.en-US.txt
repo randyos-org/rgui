@@ -718,6 +718,9 @@ sd
 sd-event
 sdbg
 SDGT
+SDLK
+sdlvk
+sdlzig
 seccomp
 security
 segbuf
@@ -760,6 +763,7 @@ settimeofday
 setuid
 setxattr
 setxattrat
+sfloat
 sfnm
 sfnt
 sgetmask
@@ -862,6 +866,7 @@ tmpfs
 toolchain
 truncate
 tuxcall
+txtr
 uapi
 ubsan
 UCACHEBSIZE
@@ -903,7 +908,9 @@ vendored
 vfork
 vhangup
 virgl
+vklib
 vkmod
+vkzig
 vmsplice
 vmxe
 vserver
@@ -940,6 +947,7 @@ xlocale
 xpixel
 xpointer
 xptr
+xrel
 XRSTOR
 XSAVES
 XSDP
@@ -949,6 +957,7 @@ xtpr
 xzlib
 yaboot
 ypixel
+yrel
 zig
 ziggify
 Zigified

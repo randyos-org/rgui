@@ -4,10 +4,12 @@ pub const zon = @import("../build.zig.zon");
 const win32 = @import("win32.zig");
 const icon_mod = @import("icon.zig");
 const vulkan_mod = @import("vulkan.zig");
-const zmath_mod = @import("zmath.zig");
-const ktx_mod = @import("ktx.zig");
 const sdl_mod = @import("sdl.zig");
-const slang_mod = @import("slang.zig");
+
+// demo stuff
+const zmath_mod = @import("demo/zmath.zig");
+const ktx_mod = @import("demo/ktx.zig");
+const slang_mod = @import("demo/slang.zig");
 
 pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
@@ -19,9 +21,11 @@ pub fn build(b: *std.Build) void {
     const w32 = win32.addWin32(b);
     const icon = icon_mod.addIcon(b, optimize);
     const vulkan = vulkan_mod.addVulkan(b);
+    const sdl = sdl_mod.addSdl3(b, target, optimize);
+
+    // demo stuff
     const zm = zmath_mod.addZmath(b);
     const ktx = ktx_mod.addKtx(b, target, optimize);
-    const sdl = sdl_mod.addSdl3(b, target, optimize);
     const slang = slang_mod.addSlang(b);
 
     const mod = b.createModule(.{
@@ -34,9 +38,11 @@ pub fn build(b: *std.Build) void {
     w32.addImportToModule(mod);
     icon.addToModule(mod);
     vulkan.addImportToModule(mod);
+    sdl.addImportToModule(mod);
+
+    // demo stuff
     zm.addImportToModule(mod);
     ktx.addImportToModule(mod);
-    sdl.addImportToModule(mod);
     slang.addToModule(mod);
 
     const exe = b.addExecutable(.{
