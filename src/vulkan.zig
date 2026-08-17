@@ -90,6 +90,10 @@ pub const Vulkan = struct {
         const inst = self.inst;
         const dev = self.dev;
 
+        dev.deviceWaitIdle() catch {
+            std.debug.print("vkDeviceWaitIdle failed during VkSurface destroy\n", .{});
+        };
+
         dev.destroyDevice(null);
         // alloc.destroy(self._dev_wrap);
         inst.destroyDebugUtilsMessengerEXT(self._debug_messenger, null);
@@ -362,6 +366,11 @@ pub const VkSurface = struct {
         const alloc = self.alloc;
         const vk = self.vk;
         const dev = vk.dev;
+
+        dev.deviceWaitIdle() catch {
+            std.debug.print("vkDeviceWaitIdle failed during VkSurface destroy\n", .{});
+        };
+
         alloc.free(self.cmd_buf);
         dev.destroyCommandPool(self.cmd_pool, null);
         for (self.render_complete_semaphores) |semaphore| dev.destroySemaphore(semaphore, null);
