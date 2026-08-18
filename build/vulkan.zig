@@ -17,8 +17,8 @@ pub fn addVulkan(b: *std.Build) utils.ZigModule {
     // pass it the registry XML file and telling it to output vulkan.zig.
     cmd.addFileArg(registry);
 
-    // return a Zig module build object for the output vulkan.zig as "vulkan"
-    return .{ .mod = b.addModule("vulkan", .{
-        .root_source_file = cmd.addOutputFileArg("vulkan.zig"),
+    // return a Zig module build object for the output vk.zig as "vulkan"
+    return .{ .mod = b.addModule("vulkan-zig", .{
+        .root_source_file = cmd.addOutputFileArg("vk.zig"),
     }), .name = "vulkan" };
 }
