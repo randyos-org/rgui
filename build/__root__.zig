@@ -10,6 +10,8 @@ const sdl_mod = @import("sdl.zig");
 const zmath_mod = @import("demo/zmath.zig");
 const ktx_mod = @import("demo/ktx.zig");
 const slang_mod = @import("demo/slang.zig");
+const freetype_mod = @import("demo/freetype.zig");
+const harfbuzz_mod = @import("demo/harfbuzz.zig");
 
 pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
@@ -26,7 +28,12 @@ pub fn build(b: *std.Build) void {
     // demo stuff
     const zm = zmath_mod.addZmath(b);
     const ktx = ktx_mod.addKtx(b, target, optimize);
-    const slang = slang_mod.addSlang(b);
+    const slang = slang_mod.addSlang(b, "shaders/shader.slang", "shader_module");
+    const slang_2d = slang_mod.addSlang(b, "shaders/shader_2d.slang", "shader_2d_module");
+    const slang_2d_text = slang_mod.addSlang(b, "shaders/shader_2d_text.slang", "shader_2d_text_module");
+    const slang_raster = slang_mod.addSlang(b, "shaders/shader_raster.slang", "shader_raster_module");
+    const freetype = freetype_mod.addFreetype(b, target, optimize);
+    const harfbuzz = harfbuzz_mod.addHarfbuzz(b, target, optimize);
 
     const mod = b.createModule(.{
         .root_source_file = b.path("src/__root__.zig"),
@@ -44,6 +51,11 @@ pub fn build(b: *std.Build) void {
     zm.addImportToModule(mod);
     ktx.addImportToModule(mod);
     slang.addToModule(mod);
+    slang_2d.addToModule(mod);
+    slang_2d_text.addToModule(mod);
+    slang_raster.addToModule(mod);
+    freetype.addImportToModule(mod);
+    harfbuzz.addImportToModule(mod);
 
     const exe = b.addExecutable(.{
         .name = "rgui",

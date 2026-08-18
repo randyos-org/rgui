@@ -8,6 +8,8 @@ const sdlzig = @import("sdl.zig");
 const vkzig = @import("vulkan.zig");
 const sdl_vk_mod = @import("sdl_vk.zig");
 const demo3d = @import("demo/demo_3d.zig").demo3d;
+const demo2d = @import("demo/demo_2d.zig").demo2d;
+const demoRaster = @import("demo/demo_raster.zig").demoRaster;
 
 const app_name = root.app_name;
 const version = root.version;
@@ -31,7 +33,9 @@ pub fn main(init: std.process.Init) !void {
     icon.setWindowIcon(&window);
 
     // now let's start drawing stuff
-    try demo3d(arena_alloc, init.io, &window);
+    // try demo3d(arena_alloc, init.io, &window);
+    // try demo2d(arena_alloc, init.io, &window);
+    try demoRaster(arena_alloc, init.io, &window);
 
     // var event: sdl3.SDL_Event = undefined;
     // outer: while (true) {

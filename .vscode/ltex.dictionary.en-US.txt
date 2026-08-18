@@ -646,6 +646,7 @@ quotactl_fd
 randyos
 RandyOS
 randyosk
+Rasterizes
 RAX
 RDFSBASE
 RDGSBASE

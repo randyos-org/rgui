@@ -80,10 +80,33 @@ pub const VkWindow = struct {
     surface: VkSurface = .{},
     max_frames_in_flight: u32 = 2,
 
+    live_repaint_ctx: ?*anyopaque = null,
+    live_repaint_fn: ?*const fn (ctx: *anyopaque) void = null,
+
     pub fn init(self: *VkWindow, window_title: [*:0]const u8, width: u32, height: u32) !*VkWindow {
         try self.createWindow(window_title, width, height);
         try self.createSurface();
         return self;
+    }
+
+    pub fn setLiveRepaint(self: *VkWindow, ctx: *anyopaque, callback: *const fn (ctx: *anyopaque) void) void {
+        self.live_repaint_ctx = ctx;
+        self.live_repaint_fn = callback;
+        _ = sdl3.SDL_AddEventWatch(&liveRepaintWatch, self);
+    }
+
+    pub fn clearLiveRepaint(self: *VkWindow) void {
+        sdl3.SDL_RemoveEventWatch(&liveRepaintWatch, self);
+        self.live_repaint_ctx = null;
+        self.live_repaint_fn = null;
+    }
+
+    fn liveRepaintWatch(userdata: ?*anyopaque, event: [*c]sdl3.SDL_Event) callconv(.c) bool {
+        const self: *VkWindow = @ptrCast(@alignCast(userdata.?));
+        if (event.*.type == sdl3.SDL_EVENT_WINDOW_EXPOSED) {
+            if (self.live_repaint_fn) |f| f(self.live_repaint_ctx.?);
+        }
+        return true;
     }
 
     pub fn destroy(self: *VkWindow) void {

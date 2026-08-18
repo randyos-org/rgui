@@ -9,7 +9,7 @@ pub const Slang = struct {
     }
 };
 
-pub fn addSlang(b: *std.Build) Slang {
+pub fn addSlang(b: *std.Build, shader_src_path: []const u8, shader_mod_name: []const u8) Slang {
     const cmd = b.addSystemCommand(&.{
         "slangc",
         "-target",
@@ -20,10 +20,10 @@ pub fn addSlang(b: *std.Build) Slang {
     const shader = cmd.addOutputFileArg("shader.spv");
 
     // add the path to the shader source file as an input arg
-    cmd.addFileArg(b.path("shaders/shader.slang"));
+    cmd.addFileArg(b.path(shader_src_path));
 
     return Slang{
         .shader_build_path = shader,
-        .shader_mod_name = "shader_module",
+        .shader_mod_name = shader_mod_name,
     };
 }

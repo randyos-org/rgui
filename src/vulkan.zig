@@ -235,6 +235,9 @@ pub const Vulkan = struct {
             // but anonymous structs are const by default in Zig
             .p_next = @constCast(&vklib.PhysicalDeviceVulkan13Features{
                 .p_next = @constCast(&vklib.PhysicalDeviceVulkan12Features{
+                    .p_next = @constCast(&vklib.PhysicalDeviceVulkan11Features{
+                        .shader_draw_parameters = .true,
+                    }),
                     .descriptor_indexing = .true,
                     .shader_sampled_image_array_non_uniform_indexing = .true,
                     .descriptor_binding_variable_descriptor_count = .true,
