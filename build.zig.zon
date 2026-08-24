@@ -24,7 +24,10 @@
             .url = "https://github.com/ryanoasis/nerd-fonts/releases/download/v3.5.1/JetBrainsMono.tar.xz",
             .hash = "N-V-__8AACC3fg6jRLitLX-beyor0I_nm4_VNP5vLRPEzDCs",
         },
-        .rstd = .{ .path = "../rstd" },
+        .rstd = .{
+            // .path = "../rstd",
+            .path = "vendor/rstd",
+        },
     },
 
     // package hash is computed from files in .paths
