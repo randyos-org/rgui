@@ -28,6 +28,10 @@ pub fn build(b: *std.Build) !void {
     const vulkan = vulkan_mod.addVulkan(b);
     // const slang = slang_mod.addSlang(b, "shaders/shader.slang", "shader_module");
     fonts_mod.addFont(b, fonts_mod.jetbrains_mono_nerd_font);
+    fonts_mod.addFont(b, fonts_mod.commit_mono_nerd_font);
+    fonts_mod.addFont(b, fonts_mod.atkinson_hyperlegible_mono_nerd_font);
+    fonts_mod.addFont(b, fonts_mod.arimo_nerd_font);
+    fonts_mod.addFont(b, fonts_mod.ubuntu_nerd_font);
     const rstd_mod = try rstdbuild.addRstd(b, target, docs);
 
     const mod = b.createModule(.{

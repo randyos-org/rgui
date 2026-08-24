@@ -16,6 +16,10 @@
             .url = "git+https://github.com/Snektron/vulkan-zig#a6ca07453ba82e6fbdd910c2e364ae3ee77d7f81",
             .hash = "vulkan-0.0.0-r7Ytx4mEAwA-B_7J6joJcsXYXL-wDb1CKLCrv-culpfR",
         },
+        .rstd = .{
+            // .path = "../rstd",
+            .path = "vendor/rstd",
+        },
 
         // Fonts - fetched as plain data (no build.zig of their own) and
         // staged into zig-out at build time. See build/fonts.zig for how
@@ -24,9 +28,21 @@
             .url = "https://github.com/ryanoasis/nerd-fonts/releases/download/v3.5.1/JetBrainsMono.tar.xz",
             .hash = "N-V-__8AACC3fg6jRLitLX-beyor0I_nm4_VNP5vLRPEzDCs",
         },
-        .rstd = .{
-            // .path = "../rstd",
-            .path = "vendor/rstd",
+        .nerd_font_arimo = .{
+            .url = "https://github.com/ryanoasis/nerd-fonts/releases/download/v3.5.1/Arimo.tar.xz",
+            .hash = "N-V-__8AAOIDbgE-T1VwVU4MxamcHe884ewmWWLNCgFx4iRL",
+        },
+        .nerd_font_atkinson_hyperlegible_mono = .{
+            .url = "https://github.com/ryanoasis/nerd-fonts/releases/download/v3.5.1/AtkinsonHyperlegibleMono.tar.xz",
+            .hash = "N-V-__8AAF5iRwMK9WHZPFu4PfMSXHesuyeuc37vczhf1EQn",
+        },
+        .nerd_font_commit_mono = .{
+            .url = "https://github.com/ryanoasis/nerd-fonts/releases/download/v3.5.1/CommitMono.tar.xz",
+            .hash = "N-V-__8AAB1YswG1jhhHtI_tBelG7FEUTwhNvjwkUum8H98P",
+        },
+        .nerd_font_ubuntu = .{
+            .url = "https://github.com/ryanoasis/nerd-fonts/releases/download/v3.5.1/Ubuntu.tar.xz",
+            .hash = "N-V-__8AABbDuwJmvIg3x4ZbZE2JDic4WW_OpXW6T6Lmi-GG",
         },
     },
 

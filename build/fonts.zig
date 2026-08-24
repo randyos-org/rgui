@@ -22,6 +22,32 @@ pub const jetbrains_mono_nerd_font: Font = .{
     // .dest_name = "JetBrainsMonoNerdFontMono-Regular.ttf",
 };
 
+pub const commit_mono_nerd_font: Font = .{
+    .dep_name = "nerd_font_commit_mono",
+    .src_path = "CommitMonoNerdFontMono-Regular.otf",
+    // .dest_name = "CommitMonoNerdFontMono-Regular.otf",
+};
+
+pub const atkinson_hyperlegible_mono_nerd_font: Font = .{
+    .dep_name = "nerd_font_atkinson_hyperlegible_mono",
+    // The upstream release's internal font name is "Atkynson Mono", not
+    // "Atkinson Hyperlegible Mono" -- that's what actually ships in the tarball.
+    .src_path = "AtkynsonMonoNerdFontMono-Regular.otf",
+    // .dest_name = "AtkinsonHyperlegibleMonoNerdFontMono-Regular.otf",
+};
+
+pub const arimo_nerd_font: Font = .{
+    .dep_name = "nerd_font_arimo",
+    .src_path = "ArimoNerdFont-Regular.ttf",
+    // .dest_name = "ArimoNerdFont-Regular.ttf",
+};
+
+pub const ubuntu_nerd_font: Font = .{
+    .dep_name = "nerd_font_ubuntu",
+    .src_path = "UbuntuNerdFont-Regular.ttf",
+    // .dest_name = "UbuntuNerdFont-Regular.ttf",
+};
+
 /// Installs `font` into zig-out/fonts/, fetched from its build.zig.zon
 /// dependency rather than tracked in the repo.
 pub fn addFont(b: *std.Build, font: Font) void {

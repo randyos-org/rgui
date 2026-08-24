@@ -23,8 +23,10 @@ arch_prctl
 archs
 Args
 argv
+arimo
 ARMEB
 ASLR
+Atkynson
 audiodev
 autodoc
 auxv
