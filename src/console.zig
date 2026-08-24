@@ -1,4 +1,5 @@
 const std = @import("std");
+const builtin = @import("builtin");
 const win32 = @import("win32");
 const build_options = @import("build_options");
 
@@ -27,8 +28,14 @@ const fs = win32.storage.file_system;
 /// prints - `SetStdHandle` is what updates the PEB field `Io.File.stderr()`
 /// reads; `AllocConsole`/`AttachConsole` alone does not re-target a
 /// GUI-subsystem process's (previously invalid) std handles to the console.
-pub fn maybeAllocDebugConsole(init: std.process.Init, allocator: std.mem.Allocator) void {
-    const args = init.minimal.args.toSlice(allocator) catch return;
+pub fn maybeAllocDebugConsole(init: std.process.Init) void {
+    // `toSlice` documents that its result may reinterpret/point into the
+    // allocator's memory in ways that aren't a single well-formed `alloc`
+    // call - freeing it back piecewise (e.g. via a GeneralPurposeAllocator)
+    // trips its bucket/canary accounting. It requires an arena, whose
+    // backing memory `init.arena` already cleans up on process exit, so no
+    // manual free is needed here.
+    const args = init.minimal.args.toSlice(init.arena.allocator()) catch return;
     var debug_requested = false;
     for (args[1..]) |arg| {
         if (std.mem.eql(u8, arg, "--debug")) {
@@ -37,6 +44,7 @@ pub fn maybeAllocDebugConsole(init: std.process.Init, allocator: std.mem.Allocat
         }
     }
 
+    if (builtin.os.tag != .windows) return;
     if (debug_requested and setupDebugConsole()) return;
     setStdHandlesToNul();
 }

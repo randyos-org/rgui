@@ -22,6 +22,7 @@
     "bash",
     "win32",
     "scientific-terms-us",
+    "zig",
     "project-words"
   ],
   "allowCompoundWords": true,

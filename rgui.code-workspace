@@ -5,24 +5,30 @@
     }
   ],
   "settings": {
-    "claudeCode.allowDangerouslySkipPermissions": true,
-    "claudeCode.initialPermissionMode": "bypassPermissions",
     "files.exclude": {
-      "**/node_modules/**": true,
+			"**/node_modules/**": true,
       "**/.zig-cache/**": true,
       "**/zig-pkg/**": true,
-      "**/zig-cache*/**": true,
+			"**/zig-cache*/**": true,
     },
     "files.watcherExclude": {
-      "**/node_modules/**": true,
+			"**/node_modules/**": true,
       "**/.zig-cache/**": true,
       "**/zig-pkg/**": true,
-      "**/zig-cache*/**": true,
+			"**/zig-cache*/**": true,
     },
+    "lldb.launch.initCommands": [
+      "command script import ${workspaceFolder}/zig-src/tools/lldb_pretty_printers.py",
+      "type category enable zig",
+      "type category enable zig.lang",
+      "type category enable zig.std",
+      "type category enable zig.stage2"
+    ],
     "files.associations": {
       "VERSION": "plaintext",
       ".local-gitignore": "gitignore",
-      ".github/workflows/exempt.txt": "gitignore"
+      ".github/workflows/exempt.txt": "gitignore",
+      ".clangd": "yaml",
     },
     "terminal.integrated.automationProfile.windows": {
       "path": "C:\\windows\\system32\\cmd.exe",
@@ -47,62 +53,52 @@
     // "lldb.dereferencePointers": true,
     // "zig.debugAdapter": "lldb",
 
-    // "zig.path": "C:/scratch/git/zig-build/bin/stage4/bin/zig.exe",
-    // "zig.zls.path": "C:/scratch/git/zig-build/bin/zls/bin/zls.exe",
+    "zig.path": "C:/scratch/git/zig-build/bin/stage4/bin/zig.exe",
+    "zig.zls.path": "C:/scratch/git/zig-build/bin/zls/bin/zls.exe",
   },
   "tasks": {
-		"version": "2.0.0",
-		"tasks": [
-			// {
-			// 	"label": "zig build (lldb)",
-			// 	"type": "shell",
-			// 	"command": "zig",
-			// 	"args": [
-			// 		"build",
-      //     "-Dlldb",
-			// 	],
-			// 	"options": {
-			// 		"shell": {
-			// 			"executable": "C:\\Windows\\System32\\cmd.exe",
-			// 			"args": ["/c"],
-			// 		}
-			// 	},
-			// 	"group": {
-			// 		"kind": "build",
-			// 		"isDefault": true
-			// 	},
-			// 	"problemMatcher": []
-			// },
+    "version": "2.0.0",
+    "tasks": [
+  //     // {
+	// 		// 	"label": "zig build (lldb)",
+	// 		// 	"type": "shell",
+	// 		// 	"command": "zig",
+	// 		// 	"args": [
+	// 		// 		"build",
+  //     //     "-Dlldb",
+	// 		// 	],
+	// 		// 	"group": {
+	// 		// 		"kind": "build",
+	// 		// 		"isDefault": true
+	// 		// 	},
+	// 		// 	"problemMatcher": []
+	// 		// },
       {
-				"label": "zig build",
-				"type": "shell",
-				"command": "zig",
+        "label": "zig build",
+        "type": "shell",
+        "command": "${config:zig.path}",
 				"args": [
 					"build",
 				],
-				"options": {
-					"shell": {
-						"executable": "C:\\Windows\\System32\\cmd.exe",
-						"args": ["/c"],
-					}
-				},
-				"group": {
-					"kind": "build",
-					"isDefault": true
-				},
-				"problemMatcher": [],
+        "group": {
+          "kind": "build",
+          "isDefault": true
+        },
+        "problemMatcher": [],
         "presentation": {
+          "clear": true,
           "reveal": "always",
+          "panel": "shared",
           "focus": true,
-          "revealProblems": "never"
-        }
-			}
-		]
-	},
-	"launch": {
-		"version": "0.2.0",
-		"configurations": [
-			// {
+          "revealProblems": "never",
+        },
+      },
+    ]
+  },
+  "launch": {
+    "version": "0.2.0",
+    "configurations": [
+      // {
 			// 	"name": "Debug (lldb)",
 			// 	"type": "lldb",
 			// 	"request": "launch",
@@ -134,13 +130,18 @@
 				"preLaunchTask": "zig build",
 				"console": "integratedTerminal",
 			}
-		]
-	},
+    ],
+    "compounds": []
+  },
   "extensions": {
     "recommendations": [
-      // "vadimcn.vscode-lldb",
       "ziglang.vscode-zig",
-      "ms-vscode.cpptools",
+      "ms-vscode.cpptools",  // windows debug
+      // "vadimcn.vscode-lldb",  // posix debug
+      "streetsidesoftware.code-spell-checker",
+      "streetsidesoftware.code-spell-checker-scientific-terms",
+      "streetsidesoftware.code-spell-checker-win32",
+      "ltex-plus.vscode-ltex-plus",
     ]
   }
 }
