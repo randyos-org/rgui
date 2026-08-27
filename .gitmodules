@@ -4,3 +4,6 @@
 [submodule "vendor/rstd"]
 	path = vendor/rstd
 	url = https://codeberg.org/randyos/rstd.git
+[submodule "vendor/TrueType"]
+	path = vendor/truetype
+	url = https://codeberg.org/emanspeaks/TrueType.git

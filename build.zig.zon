@@ -20,6 +20,7 @@
             // .path = "../rstd",
             .path = "vendor/rstd",
         },
+        .truetype = .{ .path = "vendor/truetype" },
 
         // Fonts - fetched as plain data (no build.zig of their own) and
         // staged into zig-out at build time. See build/fonts.zig for how
