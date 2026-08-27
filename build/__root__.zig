@@ -27,12 +27,14 @@ pub fn build(b: *std.Build) !void {
     );
     const vulkan = vulkan_mod.addVulkan(b);
     // const slang = slang_mod.addSlang(b, "shaders/shader.slang", "shader_module");
-    fonts_mod.addFont(b, fonts_mod.jetbrains_mono_nerd_font);
-    fonts_mod.addFont(b, fonts_mod.commit_mono_nerd_font);
-    fonts_mod.addFont(b, fonts_mod.atkinson_hyperlegible_mono_nerd_font);
-    fonts_mod.addFont(b, fonts_mod.arimo_nerd_font);
-    fonts_mod.addFont(b, fonts_mod.ubuntu_nerd_font);
-    const rstd_mod = try rstdbuild.addRstd(b, target, docs);
+    fonts_mod.addAllFonts(b);
+    // rgui always wants rgl's Vulkan shaders (unlike a headless rstd
+    // consumer), so this forces rstd's own -Dvulkan on regardless of
+    // whether rgui's own build was invoked with it.
+    const rstd_mod = try rstdbuild.addRstd(b, target, docs, true);
+
+    // ui.zig is rgui's own hot path
+    const ui_shader = try rstdbuild.spirv.addShader(b, optimize, b.path("src/render/shaders/ui.zig"), "ui", true);
 
     const mod = b.createModule(.{
         .root_source_file = b.path("src/__root__.zig"),
@@ -46,6 +48,7 @@ pub fn build(b: *std.Build) !void {
     rstd_mod.addImportToModule(mod);
     vulkan.addImportToModule(mod);
     // slang.addToModule(mod);
+    ui_shader.addToModule(mod);
 
     const exe = b.addExecutable(.{
         .name = "rgui",

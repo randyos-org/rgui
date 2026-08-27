@@ -1,4 +1,4 @@
-const std = @import("std");
+const Build = @import("rstd").buildutils.Build;
 
 /// A single font file vendored via a build.zig.zon dependency instead of
 /// being tracked in this repo. The dependency itself has no build.zig -
@@ -50,10 +50,18 @@ pub const ubuntu_nerd_font: Font = .{
 
 /// Installs `font` into zig-out/fonts/, fetched from its build.zig.zon
 /// dependency rather than tracked in the repo.
-pub fn addFont(b: *std.Build, font: Font) void {
+pub fn addFont(b: *Build, font: Font) void {
     const dep = b.dependency(font.dep_name, .{});
     const dest_name = if (font.dest_name) |name| name else font.src_path;
     const install = b.addInstallFileWithDir(dep.path(font.src_path), .{ .custom = "fonts" }, dest_name);
     b.getInstallStep().dependOn(&install.step);
     // return &install.step;
+}
+
+pub fn addAllFonts(b: *Build) void {
+    addFont(b, jetbrains_mono_nerd_font);
+    addFont(b, commit_mono_nerd_font);
+    addFont(b, atkinson_hyperlegible_mono_nerd_font);
+    addFont(b, arimo_nerd_font);
+    addFont(b, ubuntu_nerd_font);
 }

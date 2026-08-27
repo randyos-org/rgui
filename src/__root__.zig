@@ -8,3 +8,7 @@ pub const main = @import("__main__.zig").main;
 const build_options = @import("build_options");
 pub const version = build_options.version;
 pub const app_name = "rgui";
+
+pub const render = @import("render/__root__.zig");
+pub const icon = @import("icon.zig");
+pub const console = @import("console.zig");

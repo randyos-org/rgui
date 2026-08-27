@@ -28,14 +28,14 @@ const fs = win32.storage.file_system;
 /// prints - `SetStdHandle` is what updates the PEB field `Io.File.stderr()`
 /// reads; `AllocConsole`/`AttachConsole` alone does not re-target a
 /// GUI-subsystem process's (previously invalid) std handles to the console.
-pub fn maybeAllocDebugConsole(init: std.process.Init) void {
+pub fn maybeAllocDebugConsole(init: std.process.Init) bool {
     // `toSlice` documents that its result may reinterpret/point into the
     // allocator's memory in ways that aren't a single well-formed `alloc`
     // call - freeing it back piecewise (e.g. via a GeneralPurposeAllocator)
     // trips its bucket/canary accounting. It requires an arena, whose
     // backing memory `init.arena` already cleans up on process exit, so no
     // manual free is needed here.
-    const args = init.minimal.args.toSlice(init.arena.allocator()) catch return;
+    const args = init.minimal.args.toSlice(init.arena.allocator()) catch return false;
     var debug_requested = false;
     for (args[1..]) |arg| {
         if (std.mem.eql(u8, arg, "--debug")) {
@@ -44,9 +44,10 @@ pub fn maybeAllocDebugConsole(init: std.process.Init) void {
         }
     }
 
-    if (builtin.os.tag != .windows) return;
-    if (debug_requested and setupDebugConsole()) return;
+    if (builtin.os.tag != .windows) return false;
+    if (debug_requested and setupDebugConsole()) return true;
     setStdHandlesToNul();
+    return false;
 }
 
 /// Attempts to attach/allocate a real console and point
@@ -59,20 +60,37 @@ fn setupDebugConsole() bool {
     const attached = console.AttachConsole(console.ATTACH_PARENT_PROCESS) != 0;
     if (!attached and console.AllocConsole() == 0) return false;
 
-    const conout = openHandle(std.unicode.utf8ToUtf16LeStringLiteral("CONOUT$"), true);
-    if (conout == win32.foundation.INVALID_HANDLE_VALUE) return false;
+    const conout = openHandle(std.unicode.utf8ToUtf16LeStringLiteral("CONOUT$"), true, false);
+    if (invalidHandle(conout)) return false;
 
     setStdHandles(conout);
     return true;
+}
+
+fn invalidHandle(handle: win32.foundation.HANDLE) bool {
+    return handle == win32.foundation.INVALID_HANDLE_VALUE;
 }
 
 /// No console at all (or "--debug" wasn't passed, or setup above failed) -
 /// point std handles at the NUL device instead of leaving them unset, so
 /// any live-PEB-reading print always has somewhere safe to write.
 fn setStdHandlesToNul() void {
-    const nul = openHandle(std.unicode.utf8ToUtf16LeStringLiteral("NUL"), false);
-    if (nul == win32.foundation.INVALID_HANDLE_VALUE) return;
+    const nul = openHandle(std.unicode.utf8ToUtf16LeStringLiteral("NUL"), false, false);
+    if (invalidHandle(nul)) return;
     setStdHandles(nul);
+}
+
+/// Temporary smoke-test diagnostic: points STD_OUTPUT_HANDLE/STD_ERROR_HANDLE
+/// at a real log file, same mechanism as console.zig's NUL redirect, so
+/// std.debug.print and error return traces are visible regardless of
+/// whether a console is attached.
+pub fn redirectStdioToFile(alloc: std.mem.Allocator, name: []const u8) !void {
+    if (builtin.os.tag != .windows) return;
+    const name_w = try std.unicode.utf8ToUtf16LeAllocZ(alloc, name);
+    defer alloc.free(name_w);
+    const handle = openHandle(name_w, false, true);
+    if (invalidHandle(handle)) return error.InvalidHandle;
+    setStdHandles(handle);
 }
 
 fn setStdHandles(handle: win32.foundation.HANDLE) void {
@@ -80,7 +98,7 @@ fn setStdHandles(handle: win32.foundation.HANDLE) void {
     _ = console.SetStdHandle(console.STD_ERROR_HANDLE, handle);
 }
 
-fn openHandle(name: [:0]const u16, read_too: bool) win32.foundation.HANDLE {
+fn openHandle(name: [:0]const u16, read_too: bool, create: bool) win32.foundation.HANDLE {
     // GENERIC_WRITE (plus GENERIC_READ for the console case), spelled out
     // field-by-field since zigwin32 flag structs are packed structs, not
     // plain ints to `|`.
@@ -99,5 +117,5 @@ fn openHandle(name: [:0]const u16, read_too: bool) win32.foundation.HANDLE {
     }
     const share_all = fs.FILE_SHARE_MODE{ .READ = 1, .WRITE = 1 };
 
-    return fs.CreateFileW(name, access, share_all, null, fs.OPEN_EXISTING, .{}, null);
+    return fs.CreateFileW(name, access, share_all, null, if (create) fs.CREATE_ALWAYS else fs.OPEN_EXISTING, .{}, null);
 }
