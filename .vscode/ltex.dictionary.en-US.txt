@@ -702,6 +702,7 @@ RDFSBASE
 RDGSBASE
 RDLCK
 RDMSR
+rdoc
 RDPMC
 read
 readahead
@@ -721,6 +722,7 @@ removexattrat
 rename
 renameat
 renameat2
+renderdoccmd
 request_key
 restart_syscall
 retarget

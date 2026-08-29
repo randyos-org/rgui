@@ -9,3 +9,4 @@ zig-pkg/
 .pixi/*
 !.pixi/config.toml
 test.log
+/captures/
