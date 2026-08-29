@@ -19,8 +19,23 @@ pub fn main(init: std.process.Init) !void {
     std.debug.print(app_name ++ " v" ++ version ++ " Starting...\n", .{});
 
     if (true) {
+        const loadRenderDocAPI = @import("rstd").rgl.renderdoc.loadRenderDocAPI;
+        const rdc = loadRenderDocAPI();
+        if (rdc) |rdc_api| {
+            std.debug.print("RenderDoc detected! Triggering a programmatic capture.\n", .{});
+
+            rdc_api.StartFrameCapture.?(null, null);
+        } else {
+            std.debug.print("Running normally without RenderDoc.\n", .{});
+        }
+
         const shader_smoke_test = @import("render/vulkan/shader_smoke_test.zig");
-        shader_smoke_test.run(allocator) catch |err| {
+        const smoke_test_result = shader_smoke_test.run(allocator);
+
+        if (rdc) |rdc_api| {
+            _ = rdc_api.EndFrameCapture.?(null, null);
+        }
+        smoke_test_result catch |err| {
             std.debug.print("shader_smoke_test.run failed: {t}\n", .{err});
             return err;
         };

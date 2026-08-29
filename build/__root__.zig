@@ -44,7 +44,7 @@ pub fn build(b: *std.Build) !void {
     });
     rstdbuild.addBuildOptsModToModule(build_options, mod);
     rstdbuild.addWin32ToModIfWinTgt(b, target, mod);
-    icon.addToModule(mod);
+    icon.addToModule(b, mod);
     rstd_mod.addImportToModule(mod);
     vulkan.addImportToModule(mod);
     // slang.addToModule(mod);

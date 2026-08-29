@@ -8,3 +8,4 @@ zig-pkg/
 # pixi environments
 .pixi/*
 !.pixi/config.toml
+test.log
