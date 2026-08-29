@@ -3,7 +3,7 @@ const std = @import("std");
 const buildroot = @import("__root__.zig");
 const rstdbuild = buildroot.rstd.buildutils;
 
-pub fn addVulkan(b: *rstdbuild.Build) rstdbuild.ZigModule {
+pub fn addVulkan(b: *rstdbuild.Build) rstdbuild.DepModule {
     // get the path to the vulkan registry XML file
     const registry = b.dependency("vulkan_headers", .{}).path("registry/vk.xml");
 

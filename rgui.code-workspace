@@ -10,6 +10,8 @@
       "**/.zig-cache/**": true,
       "**/zig-pkg/**": true,
 			"**/zig-cache*/**": true,
+      "**/*.ziggy-schema": true,
+      "**/zine.exe": true,
     },
     "files.watcherExclude": {
 			"**/node_modules/**": true,
@@ -41,7 +43,16 @@
     "zig.zls.inlayHintsShowStructLiteralFieldType": false,
     "zig.zls.inlayHintsShowVariableTypeHints": false,
     "zig.zls.warnStyle": true,
-	  "debug.onTaskErrors": "abort",  // will switch to problems pane otherwise
+    "debug.onTaskErrors": "abort",  // will switch to problems pane otherwise
+    "zig.zls.enableArgumentPlaceholders": false,
+    "editor.semanticTokenColorCustomizations": {
+      "rules": {
+        "*.deprecated": {
+          // highlight semantic tokens that are marked as "deprecated"
+          "strikethrough": true
+        },
+      },
+    },
 
     // for C deps we will compile with Zig that have CMakeLists in their repos
     "cmake.ignoreCMakeListsMissing": true,
