@@ -48,6 +48,14 @@ pub const ubuntu_nerd_font: Font = .{
     // .dest_name = "UbuntuNerdFont-Regular.ttf",
 };
 
+/// Not a Nerd Font - IBM doesn't publish a patched variant of this one, and
+/// as a text serif it has no need for the icon glyphs anyway.
+pub const ibm_plex_serif: Font = .{
+    .dep_name = "ibm_plex_serif",
+    .src_path = "fonts/complete/ttf/IBMPlexSerif-Regular.ttf",
+    .dest_name = "IBMPlexSerif-Regular.ttf",
+};
+
 /// Installs `font` into zig-out/fonts/, fetched from its build.zig.zon
 /// dependency rather than tracked in the repo.
 pub fn addFont(b: *Build, font: Font) void {
@@ -64,4 +72,5 @@ pub fn addAllFonts(b: *Build) void {
     addFont(b, atkinson_hyperlegible_mono_nerd_font);
     addFont(b, arimo_nerd_font);
     addFont(b, ubuntu_nerd_font);
+    addFont(b, ibm_plex_serif);
 }

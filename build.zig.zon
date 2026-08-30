@@ -45,6 +45,10 @@
             .url = "https://github.com/ryanoasis/nerd-fonts/releases/download/v3.5.1/Ubuntu.tar.xz",
             .hash = "N-V-__8AABbDuwJmvIg3x4ZbZE2JDic4WW_OpXW6T6Lmi-GG",
         },
+        .ibm_plex_serif = .{
+            .url = "https://github.com/IBM/plex/releases/download/%40ibm/plex-serif%402.0.0/ibm-plex-serif.zip",
+            .hash = "N-V-__8AAIAgvADfAA7cONZP2WwyBTPpY8zwMLu_g-OOzIuD",
+        },
     },
 
     // package hash is computed from files in .paths
