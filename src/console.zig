@@ -1,8 +1,10 @@
-const std = @import("std");
+// const std = @import("std");
 const builtin = @import("builtin");
 const win32 = @import("win32");
 const build_options = @import("build_options");
+const rstd = @import("rstd");
 
+const L = rstd.bytes.L;
 const console = win32.system.console;
 const fs = win32.storage.file_system;
 
@@ -28,7 +30,7 @@ const fs = win32.storage.file_system;
 /// prints - `SetStdHandle` is what updates the PEB field `Io.File.stderr()`
 /// reads; `AllocConsole`/`AttachConsole` alone does not re-target a
 /// GUI-subsystem process's (previously invalid) std handles to the console.
-pub fn maybeAllocDebugConsole(init: std.process.Init) bool {
+pub fn maybeAllocDebugConsole(init: rstd.zigstd.MainInit) bool {
     // `toSlice` documents that its result may reinterpret/point into the
     // allocator's memory in ways that aren't a single well-formed `alloc`
     // call - freeing it back piecewise (e.g. via a GeneralPurposeAllocator)
@@ -38,7 +40,7 @@ pub fn maybeAllocDebugConsole(init: std.process.Init) bool {
     const args = init.minimal.args.toSlice(init.arena.allocator()) catch return false;
     var debug_requested = false;
     for (args[1..]) |arg| {
-        if (std.mem.eql(u8, arg, "--debug")) {
+        if (rstd.zigstd.equal(u8, arg, "--debug")) {
             debug_requested = true;
             break;
         }
@@ -60,7 +62,7 @@ fn setupDebugConsole() bool {
     const attached = console.AttachConsole(console.ATTACH_PARENT_PROCESS) != 0;
     if (!attached and console.AllocConsole() == 0) return false;
 
-    const conout = openHandle(std.unicode.utf8ToUtf16LeStringLiteral("CONOUT$"), true, false);
+    const conout = openHandle(L("CONOUT$"), true, false);
     if (invalidHandle(conout)) return false;
 
     setStdHandles(conout);
@@ -75,7 +77,7 @@ fn invalidHandle(handle: win32.foundation.HANDLE) bool {
 /// point std handles at the NUL device instead of leaving them unset, so
 /// any live-PEB-reading print always has somewhere safe to write.
 fn setStdHandlesToNul() void {
-    const nul = openHandle(std.unicode.utf8ToUtf16LeStringLiteral("NUL"), false, false);
+    const nul = openHandle(L("NUL"), false, false);
     if (invalidHandle(nul)) return;
     setStdHandles(nul);
 }
@@ -84,9 +86,9 @@ fn setStdHandlesToNul() void {
 /// at a real log file, same mechanism as console.zig's NUL redirect, so
 /// std.debug.print and error return traces are visible regardless of
 /// whether a console is attached.
-pub fn redirectStdioToFile(alloc: std.mem.Allocator, name: []const u8) !void {
+pub fn redirectStdioToFile(alloc: rstd.zigstd.Allocator, name: []const u8) !void {
     if (builtin.os.tag != .windows) return;
-    const name_w = try std.unicode.utf8ToUtf16LeAllocZ(alloc, name);
+    const name_w = try rstd.bytes.utf8ToWinStrAllocZ(alloc, name);
     defer alloc.free(name_w);
     const handle = openHandle(name_w, false, true);
     if (invalidHandle(handle)) return error.InvalidHandle;

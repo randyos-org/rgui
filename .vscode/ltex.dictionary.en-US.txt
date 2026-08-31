@@ -729,6 +729,7 @@ retarget
 revents
 rfkill
 RFLAGS
+rfont
 Rgbaf
 rgui
 rlim

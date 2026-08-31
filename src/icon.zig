@@ -13,5 +13,5 @@ pub const data: Image = .{
     // already byte-for-byte identical to the target layout - reinterpret
     // rather than copy. @constCast is safe here: this data is only ever
     // read, never written back through Image's (necessarily mutable) []RGBA.
-    .data = @constCast(@alignCast(std.mem.bytesAsSlice(RGBA, icon_rgba))),
+    .data = @alignCast(@constCast(rstd.bytes.fromSlice(RGBA, icon_rgba))),
 };

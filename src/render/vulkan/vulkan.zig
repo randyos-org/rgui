@@ -1,17 +1,21 @@
 const std = @import("std");
-
 const vklib = @import("vulkan");
+
+const rstd = @import("rstd");
+const zigstd = rstd.zigstd;
+const Allocator = zigstd.Allocator;
+const equal = zigstd.equal;
 
 pub const InstExts = std.ArrayList([*:0]const u8);
 pub const LayerNames = std.ArrayList([*:0]const u8);
 
-pub fn initInstExts(alloc: std.mem.Allocator) !InstExts {
+pub fn initInstExts(alloc: Allocator) !InstExts {
     var inst_exts: InstExts = .empty;
     try inst_exts.append(alloc, vklib.extensions.ext_debug_utils.name);
     return inst_exts;
 }
 
-pub fn destroyInstExts(alloc: std.mem.Allocator, inst_exts: *InstExts) void {
+pub fn destroyInstExts(alloc: Allocator, inst_exts: *InstExts) void {
     inst_exts.deinit(alloc);
 }
 
@@ -24,7 +28,7 @@ pub const VkDevMemInfo = struct {
 };
 
 pub const Vulkan = struct {
-    alloc: std.mem.Allocator = undefined,
+    alloc: Allocator = undefined,
     dispatcher: vklib.BaseWrapper = undefined,
 
     // app_info: vk.ApplicationInfo = undefined,
@@ -48,7 +52,7 @@ pub const Vulkan = struct {
     dev: vklib.DeviceProxy = undefined,
     queue: vklib.Queue = undefined,
 
-    pub fn init(self: *Vulkan, alloc: std.mem.Allocator, app_name: [*:0]const u8, inst_exts: InstExts, dispatcher: vklib.BaseWrapper) !void {
+    pub fn init(self: *Vulkan, alloc: Allocator, app_name: [*:0]const u8, inst_exts: InstExts, dispatcher: vklib.BaseWrapper) !void {
         // Vulkan-Zig is designed to only support dynamic linking against Vulkan,
         // so it provides a series of "wrapper" and "proxy" objects to abstract
         // away function pointers with more Zig-native interfaces.
@@ -105,7 +109,7 @@ pub const Vulkan = struct {
     /// Requested layers that aren't installed would otherwise make
     /// vkCreateInstance fail with LayerNotPresent; only enable the
     /// ones actually available.
-    fn getEnabledLayers(alloc: std.mem.Allocator, dispatch_wrapper: vklib.BaseWrapper) !LayerNames {
+    fn getEnabledLayers(alloc: Allocator, dispatch_wrapper: vklib.BaseWrapper) !LayerNames {
         const wanted_layers = [_][*:0]const u8{
             "VK_LAYER_KHRONOS_validation",
             // "VK_LAYER_LUNARG_monitor",
@@ -124,7 +128,7 @@ pub const Vulkan = struct {
         for (wanted_layers) |layer| {
             const wanted_name = std.mem.sliceTo(layer, 0);
             const is_avail = for (avail_layers) |avail| {
-                if (std.mem.eql(u8, wanted_name, std.mem.sliceTo(&avail.layer_name, 0))) break true;
+                if (equal(u8, wanted_name, std.mem.sliceTo(&avail.layer_name, 0))) break true;
             } else false;
 
             if (is_avail) {
@@ -314,7 +318,7 @@ fn debugCallback(
 }
 
 pub const VkSurface = struct {
-    alloc: std.mem.Allocator = undefined,
+    alloc: Allocator = undefined,
     vk: *Vulkan = undefined,
     surface: vklib.SurfaceKHR = undefined,
     default_extent: vklib.Extent2D = undefined,
@@ -339,7 +343,7 @@ pub const VkSurface = struct {
     cmd_pool: vklib.CommandPool = undefined,
     cmd_buf: []vklib.CommandBuffer = undefined,
 
-    pub fn init(self: *VkSurface, alloc: std.mem.Allocator, vk: *Vulkan, default_extent: vklib.Extent2D, max_frames_in_flight: ?u32) !void {
+    pub fn init(self: *VkSurface, alloc: Allocator, vk: *Vulkan, default_extent: vklib.Extent2D, max_frames_in_flight: ?u32) !void {
         self.alloc = alloc;
         self.vk = vk;
         self.default_extent = default_extent;
