@@ -6,21 +6,23 @@ const win32 = @import("win32");
 const console = @import("console.zig");
 const icon = @import("icon.zig");
 const randygl = @import("zep/__root__.zig");
+const rstd = @import("rstd");
 
 const app_name = root.app_name;
 const version = root.version;
 
-pub fn main(init: std.process.Init) !void {
+pub fn main(init: rstd.zigstd.MainInit) !void {
     const allocator = init.gpa;
-    const debug_console = console.maybeAllocDebugConsole(init);
-    if (!debug_console) {
-        try console.redirectStdioToFile(allocator, "test.log");
-    }
+    _ = console.setupDebugConsole();
+    // const debug_console = console.maybeAllocDebugConsole(init);
+    // if (!debug_console) {
+    //     try console.redirectStdioToFile(allocator, "test.log");
+    // }
     std.debug.print(app_name ++ " v" ++ version ++ " Starting...\n", .{});
 
     if (true) {
         const shader_smoke_test = @import("render/vulkan/shader_smoke_test.zig");
-        const smoke_test_result = shader_smoke_test.run(allocator);
+        const smoke_test_result = shader_smoke_test.run(allocator, init.io);
         smoke_test_result catch |err| {
             std.debug.print("shader_smoke_test.run failed: {t}\n", .{err});
             return err;

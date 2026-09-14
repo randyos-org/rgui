@@ -54,7 +54,7 @@ pub fn maybeAllocDebugConsole(init: rstd.zigstd.MainInit) bool {
 
 /// Attempts to attach/allocate a real console and point
 /// STD_OUTPUT_HANDLE/STD_ERROR_HANDLE at it. Returns whether it succeeded.
-fn setupDebugConsole() bool {
+pub fn setupDebugConsole() bool {
     // Prefer reusing whatever console launched us (e.g. `zig build run --
     // --debug` from an existing terminal) so output lands there instead of
     // popping a separate window. Falls back to allocating our own when
