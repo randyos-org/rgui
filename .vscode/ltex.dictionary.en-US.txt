@@ -539,6 +539,7 @@ mq_timedreceive
 mq_timedsend
 mq_unlink
 mremap
+msdf
 mseal
 msgctl
 msgget
@@ -551,6 +552,7 @@ mtllib
 mtlr
 mtrr
 MTRRs
+mtsdf's
 muhenkan
 munlock
 munlockall
