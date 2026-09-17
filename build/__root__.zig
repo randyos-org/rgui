@@ -3,7 +3,6 @@ const std = @import("std");
 pub const zon = @import("../build.zig.zon");
 pub const rstd = @import("rstd");
 
-const vulkan_mod = @import("vulkan.zig");
 const fonts_mod = @import("fonts.zig");
 
 const rstdbuild = rstd.buildutils;
@@ -25,7 +24,6 @@ pub fn build(b: *std.Build) !void {
         "icon.rc",
         "icon.rgba",
     );
-    const vulkan = vulkan_mod.addVulkan(b);
     // const slang = slang_mod.addSlang(b, "shaders/shader.slang", "shader_module");
     fonts_mod.addAllFonts(b);
     // rgui always wants rgl's Vulkan shaders (unlike a headless rstd
@@ -46,7 +44,7 @@ pub fn build(b: *std.Build) !void {
     rstdbuild.addWin32ToModIfWinTgt(b, target, mod);
     icon.addToModule(b, mod);
     rstd_mod.addImportToModule(mod);
-    vulkan.addImportToModule(mod);
+    rstdbuild.addVulkanImportToModule(rstd_mod, mod);
     // slang.addToModule(mod);
     ui_shader.addToModule(mod);
 
