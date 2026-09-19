@@ -1,6 +1,6 @@
 const std = @import("std");
 const root = @import("root");
-const builtin = @import("builtin");
+const sysinfo = @import("builtin");
 const win32 = @import("win32");
 
 const console = @import("console.zig");

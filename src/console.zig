@@ -1,5 +1,5 @@
 // const std = @import("std");
-const builtin = @import("builtin");
+const sysinfo = @import("builtin");
 const win32 = @import("win32");
 const build_options = @import("build_options");
 const rstd = @import("rstd");
@@ -46,7 +46,7 @@ pub fn maybeAllocDebugConsole(init: rstd.zigstd.MainInit) bool {
         }
     }
 
-    if (builtin.os.tag != .windows) return false;
+    if (sysinfo.os.tag != .windows) return false;
     if (debug_requested and setupDebugConsole()) return true;
     setStdHandlesToNul();
     return false;
@@ -87,7 +87,7 @@ fn setStdHandlesToNul() void {
 /// std.debug.print and error return traces are visible regardless of
 /// whether a console is attached.
 pub fn redirectStdioToFile(alloc: rstd.zigstd.Allocator, name: []const u8) !void {
-    if (builtin.os.tag != .windows) return;
+    if (sysinfo.os.tag != .windows) return;
     const name_w = try rstd.bytes.utf8ToWinStrAllocZ(alloc, name);
     defer alloc.free(name_w);
     const handle = openHandle(name_w, false, true);
