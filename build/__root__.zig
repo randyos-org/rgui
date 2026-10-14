@@ -27,7 +27,8 @@ pub fn build(b: *std.Build) !void {
     // rgui always wants rgl's Vulkan shaders (unlike a headless rstd
     // consumer), so this forces rstd's own -Dvulkan on regardless of
     // whether rgui's own build was invoked with it.
-    const rstd_mod = try rstdbuild.addRstd(b, target, docs, true, .{ .optimize = optimize });
+    const renderdoc = b.option(bool, "renderdoc", "Enable RenderDoc captures in the shader smoke test (fetches renderdoc and translate-c)") orelse false;
+    const rstd_mod = try rstdbuild.addRstd(b, target, docs, true, .{ .optimize = optimize, .renderdoc = renderdoc });
     const build_options = try rstdbuild.addBuildOptionsModule(b, @tagName(zon.name), zon.version, &rstd_mod);
 
     // ui.zig is rgui's own hot path
