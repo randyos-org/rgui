@@ -11,4 +11,5 @@ pub const app_name = "rgui";
 
 pub const render = @import("render/__root__.zig");
 pub const icon = @import("icon.zig");
-pub const console = @import("console.zig");
+// moved to rstd; kept so `rgui.console` still resolves
+pub const console = @import("rstd").windows.console;

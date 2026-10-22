@@ -3,10 +3,10 @@ const root = @import("root");
 const sysinfo = @import("builtin");
 const win32 = @import("win32");
 
-const console = @import("console.zig");
 const icon = @import("icon.zig");
 const randygl = @import("zep/__root__.zig");
 const rstd = @import("rstd");
+const console = rstd.windows.console;
 
 const app_name = root.app_name;
 const version = root.version;
