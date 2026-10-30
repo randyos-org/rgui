@@ -17,7 +17,7 @@ pub fn addSlang(b: *std.Build, shader_src_path: []const u8, shader_mod_name: []c
         "-o",
     });
     // goes with the -o arg
-    const shader = cmd.addOutputFileArg("shader.spv");
+    const shader = cmd.addOutputFileArg2("shader.spv", .{});
 
     // add the path to the shader source file as an input arg
     cmd.addFileArg(b.path(shader_src_path));

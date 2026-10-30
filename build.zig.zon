@@ -5,16 +5,18 @@
     // .minimum_zig_version = "0.17.0-dev.1444+8d6b8a643",
     .dependencies = .{
         .win32 = .{
-            .url = "git+https://github.com/marlersoft/zigwin32#65cb93421729e89c0acc99f90550e8ad0e6ceb87",
-            .hash = "win32-32.0.17-preview-mX5pFV2k5QN3LlWB1QQWEJv6wltK3Eq5Nn-ZDa_2_Na6",
+            // .url = "git+https://github.com/marlersoft/zigwin32#65cb93421729e89c0acc99f90550e8ad0e6ceb87",
+            // .hash = "win32-32.0.17-preview-mX5pFV2k5QN3LlWB1QQWEJv6wltK3Eq5Nn-ZDa_2_Na6",
+            .url = "git+https://github.com/emanspeaks/zigwin32#5bfdb4c9b01297f97fb2b28b53597ed4b1e4e341",
+            .hash = "win32-42.0.39-preview-mX5pFdD94wPCU1tx88LlBHVotltBhYtzxw_bUw7WElYc",
         },
         .vulkan_headers = .{
             .url = "git+https://github.com/KhronosGroup/Vulkan-Headers.git#015e25c3c91b70eb1a754d36fb14c4ba6ad9b0b9",
             .hash = "N-V-__8AAHAZeALsJNAOsFHuMyyXDuoFVG48EQdnJGNAZ3Th",
         },
         .vulkan = .{
-            .url = "git+https://github.com/Snektron/vulkan-zig#a6ca07453ba82e6fbdd910c2e364ae3ee77d7f81",
-            .hash = "vulkan-0.0.0-r7Ytx4mEAwA-B_7J6joJcsXYXL-wDb1CKLCrv-culpfR",
+            .url = "git+https://github.com/Snektron/vulkan-zig#91a3537868952be63763db2b0725bcf9cf7f0d93",
+            .hash = "vulkan-0.0.0-r7Ytx1eHAwDInvlQSbl5gMYemczKJa6GimvWcgnOjibX",
         },
         .rstd = .{
             // .path = "../rstd",
