@@ -263,7 +263,7 @@ pub const Vulkan = struct {
     pub fn findMemoryTypeIndex(self: *Vulkan, reqs: vklib.MemoryRequirements, flags: vklib.MemoryPropertyFlags) !u32 {
         const mem = self.device_mem;
         for (mem.memory_types[0..mem.memory_type_count], 0..) |mem_type, i| {
-            if (reqs.memory_type_bits & (@as(u32, 1)) << @truncate(i) != 0 and mem_type.property_flags.contains(flags)) {
+            if ((reqs.memory_type_bits & (@as(u32, 1) << @truncate(i))) != 0 and mem_type.property_flags.contains(flags)) {
                 return @truncate(i);
             }
         }
