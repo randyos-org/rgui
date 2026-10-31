@@ -13,14 +13,15 @@ const version = root.version;
 
 pub fn main(init: rstd.zigstd.MainInit) !void {
     const allocator = init.gpa;
-    _ = console.setupDebugConsole();
+    if (sysinfo.os.tag == .windows) _ = console.setupDebugConsole();
     // const debug_console = console.maybeAllocDebugConsole(init);
     // if (!debug_console) {
     //     try console.redirectStdioToFile(allocator, "test.log");
     // }
     std.debug.print(app_name ++ " v" ++ version ++ " Starting...\n", .{});
 
-    if (true) {
+    // the smoke test is Win32 + Vulkan only
+    if (sysinfo.os.tag == .windows) {
         const shader_smoke_test = @import("render/vulkan/shader_smoke_test.zig");
         const smoke_test_result = shader_smoke_test.run(allocator, init.io);
         smoke_test_result catch |err| {

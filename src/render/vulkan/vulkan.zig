@@ -11,7 +11,7 @@ pub const LayerNames = std.ArrayList([*:0]const u8);
 
 pub fn initInstExts(alloc: Allocator) !InstExts {
     var inst_exts: InstExts = .empty;
-    try inst_exts.append(alloc, vklib.extensions.ext_debug_utils.name);
+    try inst_exts.append(alloc, vklib.instance_extensions.ext_debug_utils.name);
     return inst_exts;
 }
 
@@ -169,13 +169,13 @@ pub const Vulkan = struct {
     fn initVkDebugMsngr(self: *Vulkan) !void {
         const debug_info = vklib.DebugUtilsMessengerCreateInfoEXT{
             .message_severity = .{
-                .warning_bit_ext = true,
-                .error_bit_ext = true,
+                .warning_ext = true,
+                .error_ext = true,
             },
             .message_type = .{
-                .general_bit_ext = true,
-                .validation_bit_ext = true,
-                .performance_bit_ext = true,
+                .general_ext = true,
+                .validation_ext = true,
+                .performance_ext = true,
             },
             .pfn_user_callback = &debugCallback,
             .p_user_data = null,
@@ -203,7 +203,7 @@ pub const Vulkan = struct {
 
         var found: ?u32 = null;
         for (families, 0..) |family, idx| {
-            if (family.queue_flags.graphics_bit) {
+            if (family.queue_flags.graphics) {
                 found = @intCast(idx);
                 break;
             }
@@ -222,7 +222,7 @@ pub const Vulkan = struct {
         }};
 
         const req_dev_exts = [_][*:0]const u8{
-            vklib.extensions.khr_swapchain.name,
+            vklib.device_extensions.khr_swapchain.name,
         };
 
         const dev_info: vklib.DeviceCreateInfo = .{
@@ -310,8 +310,8 @@ fn debugCallback(
     data: ?*const vklib.DebugUtilsMessengerCallbackDataEXT,
     _: ?*anyopaque,
 ) callconv(.c) vklib.Bool32 {
-    const sev_str = if (severity.verbose_bit_ext) "verbose" else if (severity.info_bit_ext) "info" else if (severity.warning_bit_ext) "warning" else if (severity.error_bit_ext) "error" else "unknown";
-    const type_str = if (msg_type.general_bit_ext) "general" else if (msg_type.validation_bit_ext) "validation" else if (msg_type.performance_bit_ext) "performance" else if (msg_type.device_address_binding_bit_ext) "device addr" else "unknown";
+    const sev_str = if (severity.verbose_ext) "verbose" else if (severity.info_ext) "info" else if (severity.warning_ext) "warning" else if (severity.error_ext) "error" else "unknown";
+    const type_str = if (msg_type.general_ext) "general" else if (msg_type.validation_ext) "validation" else if (msg_type.performance_ext) "performance" else if (msg_type.device_address_binding_ext) "device addr" else "unknown";
     const message: [*c]const u8 = if (data) |debug_data| debug_data.p_message else "NO MESSAGE!";
     std.debug.print("[{s}][{s}]. Message\n  {s}\n", .{ sev_str, type_str, message });
     return .false;
@@ -329,7 +329,7 @@ pub const VkSurface = struct {
     max_frames_in_flight: u32 = 2,
 
     surface_caps: vklib.SurfaceCapabilitiesKHR = undefined,
-    swapchain: vklib.SwapchainKHR = .null_handle,
+    swapchain: vklib.SwapchainKHR = .null,
     swap_img: []vklib.Image = undefined,
     swap_view: []vklib.ImageView = undefined,
     _swap_view_count: usize = 0,
@@ -401,9 +401,9 @@ pub const VkSurface = struct {
             .image_color_space = self.image_color_space,
             .image_extent = self.getExtent(),
             .image_array_layers = 1,
-            .image_usage = .{ .color_attachment_bit = true },
-            .pre_transform = .{ .identity_bit_khr = true },
-            .composite_alpha = .{ .opaque_bit_khr = true },
+            .image_usage = .{ .color_attachment = true },
+            .pre_transform = .{ .identity_khr = true },
+            .composite_alpha = .{ .opaque_khr = true },
             .present_mode = .fifo_khr,
             .image_sharing_mode = .exclusive,
             .clipped = .true,
@@ -434,7 +434,7 @@ pub const VkSurface = struct {
                     .a = .identity,
                 },
                 .subresource_range = .{
-                    .aspect_mask = .{ .color_bit = true },
+                    .aspect_mask = .{ .color = true },
                     .level_count = 1,
                     .layer_count = 1,
                     .base_array_layer = 0,
@@ -459,7 +459,7 @@ pub const VkSurface = struct {
         self.depth_format = for (depth_format_list) |format| {
             var format_properties = vklib.FormatProperties2{ .format_properties = undefined };
             inst.getPhysicalDeviceFormatProperties2(phys_dev, format, &format_properties);
-            if (format_properties.format_properties.optimal_tiling_features.depth_stencil_attachment_bit) {
+            if (format_properties.format_properties.optimal_tiling_features.depth_stencil_attachment) {
                 break format;
             }
         } else @panic("Required depth format(s) not supported");
@@ -481,9 +481,9 @@ pub const VkSurface = struct {
             },
             .mip_levels = 1,
             .array_layers = 1,
-            .samples = .{ .@"1_bit" = true },
+            .samples = .{ .@"1" = true },
             .tiling = .optimal,
-            .usage = .{ .depth_stencil_attachment_bit = true },
+            .usage = .{ .depth_stencil_attachment = true },
             .initial_layout = .undefined,
             .sharing_mode = .exclusive,
         }, null);
@@ -491,7 +491,7 @@ pub const VkSurface = struct {
 
     pub fn createDepthImgMem(self: *VkSurface) !void {
         const vk = self.vk;
-        self.depth_img_mem = (try vk.allocImageMemory(self.depth_img, .{ .device_local_bit = true })).mem;
+        self.depth_img_mem = (try vk.allocImageMemory(self.depth_img, .{ .device_local = true })).mem;
     }
 
     pub fn createDepthImgView(self: *VkSurface) !void {
@@ -508,7 +508,7 @@ pub const VkSurface = struct {
                 .a = .identity,
             },
             .subresource_range = .{
-                .aspect_mask = .{ .depth_bit = true },
+                .aspect_mask = .{ .depth = true },
                 .level_count = 1,
                 .layer_count = 1,
                 .base_array_layer = 0,
@@ -520,7 +520,7 @@ pub const VkSurface = struct {
     fn createSyncObjs(self: *VkSurface) !void {
         const alloc = self.alloc;
         const dev = self.vk.dev;
-        const fence_create_info: vklib.FenceCreateInfo = .{ .flags = .{ .signaled_bit = true } };
+        const fence_create_info: vklib.FenceCreateInfo = .{ .flags = .{ .signaled = true } };
         const max_frames = self.max_frames_in_flight;
 
         self.fences = try alloc.alloc(vklib.Fence, max_frames);
@@ -541,7 +541,7 @@ pub const VkSurface = struct {
         const dev = vk.dev;
         const max_frames = self.max_frames_in_flight;
         self.cmd_pool = try dev.createCommandPool(&.{
-            .flags = .{ .reset_command_buffer_bit = true },
+            .flags = .{ .reset_command_buffer = true },
             .queue_family_index = vk.graphics_queue_family,
         }, null);
         self.cmd_buf = try self.alloc.alloc(vklib.CommandBuffer, max_frames);
